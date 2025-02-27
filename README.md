@@ -7,7 +7,9 @@ They need to install the required Python libraries for the Flask backend and Mus
 
 
 python -m venv venv
-source venv/bin/activate   # For macOS/Linux
+
+
+
 
 venv\Scripts\activate      # For Windows
 
