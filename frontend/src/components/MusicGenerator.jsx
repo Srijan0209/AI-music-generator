@@ -16,7 +16,8 @@ const MusicGenerator = () => {
     setAudioSrc(null);
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/generate", {
+      const response = await axios.post("https://Srijan12380-ai-music-generator.hf.space/generate", 
+ {
         prompt: prompt,
         duration: 10,
         guidance_scale: 1.0
