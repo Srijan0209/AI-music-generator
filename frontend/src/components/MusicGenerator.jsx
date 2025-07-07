@@ -18,7 +18,7 @@ const MusicGenerator = () => {
     try {
       // Step 1: Call Hugging Face Space to get file path
       const predictResponse = await axios.post(
-        "https://Srijan12380-ai-music-generator.hf.space/run/predict",
+        "https://Srijan12380-ai-music-generator.hf.space/predict",
         {
           data: [prompt, 10, 1.0]
         }
