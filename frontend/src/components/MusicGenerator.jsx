@@ -16,16 +16,16 @@ const MusicGenerator = () => {
     setAudioSrc(null);
 
     try {
-      const response = await axios.post("https://Srijan12380-ai-music-generator.hf.space/generate", 
- {
-        prompt: prompt,
-        duration: 10,
-        guidance_scale: 1.0
-      }, {
-        responseType: 'arraybuffer',  // Important for binary data
-      });
+      const response = await axios.post(
+        "https://Srijan12380-ai-music-generator.hf.space/run/predict",
+        {
+          data: [prompt, 10, 1.0] // prompt, duration, guidance_scale
+        },
+        {
+          responseType: "arraybuffer"
+        }
+      );
 
-      // Create a Blob from the response and set it as audio source
       const audioBlob = new Blob([response.data], { type: "audio/wav" });
       const audioUrl = URL.createObjectURL(audioBlob);
       setAudioSrc(audioUrl);
@@ -39,7 +39,7 @@ const MusicGenerator = () => {
 
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>
-      <h2>Music Generator</h2>
+      <h2>🎵 AI Music Generator</h2>
       <input
         type="text"
         placeholder="Enter music prompt..."
@@ -62,3 +62,4 @@ const MusicGenerator = () => {
 };
 
 export default MusicGenerator;
+
