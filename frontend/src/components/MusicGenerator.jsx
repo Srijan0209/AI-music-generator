@@ -24,17 +24,11 @@ const MusicGenerator = () => {
         }
       );
 
-      const filePath = predictResponse.data.data[0]; // e.g. "/file=...wav"
+      const filePath = predictResponse.data.data[0]; // e.g. "/file=..."
 
-      // Step 2: Fetch the actual audio file
-      const audioResponse = await axios.get(
-        `https://Srijan12380-ai-music-generator.hf.space${filePath}`,
-        { responseType: "arraybuffer" }
-      );
-
-      const audioBlob = new Blob([audioResponse.data], { type: "audio/wav" });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      setAudioSrc(audioUrl);
+      // Step 2: Use the file path directly in the audio tag
+      const fullUrl = `https://Srijan12380-ai-music-generator.hf.space${filePath}`;
+      setAudioSrc(fullUrl);
     } catch (error) {
       console.error("Error generating music:", error);
       alert("Error generating music. Check console for details.");
@@ -68,3 +62,4 @@ const MusicGenerator = () => {
 };
 
 export default MusicGenerator;
+
