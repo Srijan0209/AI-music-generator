@@ -16,17 +16,23 @@ const MusicGenerator = () => {
     setAudioSrc(null);
 
     try {
-      const response = await axios.post(
+      // Step 1: Call Hugging Face Space to get file path
+      const predictResponse = await axios.post(
         "https://Srijan12380-ai-music-generator.hf.space/run/predict",
         {
-          data: [prompt, 10, 1.0] // prompt, duration, guidance_scale
-        },
-        {
-          responseType: "arraybuffer"
+          data: [prompt, 10, 1.0]
         }
       );
 
-      const audioBlob = new Blob([response.data], { type: "audio/wav" });
+      const filePath = predictResponse.data.data[0]; // e.g. "/file=...wav"
+
+      // Step 2: Fetch the actual audio file
+      const audioResponse = await axios.get(
+        `https://Srijan12380-ai-music-generator.hf.space${filePath}`,
+        { responseType: "arraybuffer" }
+      );
+
+      const audioBlob = new Blob([audioResponse.data], { type: "audio/wav" });
       const audioUrl = URL.createObjectURL(audioBlob);
       setAudioSrc(audioUrl);
     } catch (error) {
@@ -62,4 +68,3 @@ const MusicGenerator = () => {
 };
 
 export default MusicGenerator;
-
