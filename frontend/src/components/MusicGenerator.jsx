@@ -16,19 +16,18 @@ const MusicGenerator = () => {
     setAudioSrc(null);
 
     try {
-      // Step 1: Call Hugging Face Space to get file path
-      const predictResponse = await axios.post(
-        "https://Srijan12380-ai-music-generator.hf.space/predict",
-        {
-          data: [prompt, 10, 1.0]
-        }
-      );
+      const response = await axios.post("http://127.0.0.1:5000/generate", {
+        prompt: prompt,
+        duration: 10,
+        guidance_scale: 1.0
+      }, {
+        responseType: 'arraybuffer',  // Important for binary data
+      });
 
-      const filePath = predictResponse.data.data[0]; // e.g. "/file=..."
-
-      // Step 2: Use the file path directly in the audio tag
-      const fullUrl = `https://Srijan12380-ai-music-generator.hf.space${filePath}`;
-      setAudioSrc(fullUrl);
+      // Create a Blob from the response and set it as audio source
+      const audioBlob = new Blob([response.data], { type: "audio/wav" });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      setAudioSrc(audioUrl);
     } catch (error) {
       console.error("Error generating music:", error);
       alert("Error generating music. Check console for details.");
@@ -39,7 +38,7 @@ const MusicGenerator = () => {
 
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>
-      <h2>🎵 AI Music Generator</h2>
+      <h2>Music Generator</h2>
       <input
         type="text"
         placeholder="Enter music prompt..."
@@ -62,4 +61,3 @@ const MusicGenerator = () => {
 };
 
 export default MusicGenerator;
-
