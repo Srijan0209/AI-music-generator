@@ -6,35 +6,33 @@ const MusicGenerator = () => {
   const [loading, setLoading] = useState(false);
   const [audioSrc, setAudioSrc] = useState(null);
 
-  const handleGenerate = async () => {
-    if (!prompt.trim()) {
-      alert("Please enter a prompt");
-      return;
-    }
+const handleGenerate = async () => {
+  if (!prompt.trim()) {
+    alert("Please enter a prompt");
+    return;
+  }
 
-    setLoading(true);
-    setAudioSrc(null);
+  setLoading(true);
+  setAudioSrc(null);
 
-    try {
-      const response = await axios.post("http://127.0.0.1:5000/generate", {
-        prompt: prompt,
-        duration: 10,
-        guidance_scale: 1.0
-      }, {
-        responseType: 'arraybuffer',  // Important for binary data
-      });
+  try {
+    const response = await axios.post("https://srijan12380-ai-music-generator.hf.space/run/predict", {
+      data: [prompt, 10, 1]
+    }, {
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
 
-      // Create a Blob from the response and set it as audio source
-      const audioBlob = new Blob([response.data], { type: "audio/wav" });
-      const audioUrl = URL.createObjectURL(audioBlob);
-      setAudioSrc(audioUrl);
-    } catch (error) {
-      console.error("Error generating music:", error);
-      alert("Error generating music. Check console for details.");
-    }
+    const generatedAudioUrl = response.data.data[0];
+    setAudioSrc(generatedAudioUrl);
+  } catch (error) {
+    console.error("Error generating music:", error);
+    alert("Error generating music. Check console for details.");
+  }
 
-    setLoading(false);
-  };
+  setLoading(false);
+};
 
 
 
