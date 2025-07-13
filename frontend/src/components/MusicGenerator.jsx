@@ -3,50 +3,42 @@ import axios from "axios";
 
 const MusicGenerator = () => {
   const [prompt, setPrompt] = useState("");
-  const [loading, setLoading] = useState(false);
   const [audioSrc, setAudioSrc] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-const handleGenerate = async () => {
-  if (!prompt.trim()) {
-    alert("Please enter a prompt");
-    return;
-  }
+  const handleGenerate = async () => {
+    if (!prompt.trim()) {
+      alert("Please enter a prompt");
+      return;
+    }
 
-  setLoading(true);
-  setAudioSrc(null);
+    setLoading(true);
+    setAudioSrc(null);
 
-  try {
-    const response = await axios.post(
-      "https://Srijan12380-ai-music-generator.hf.space/predict",
-      {
-        prompt: prompt,
-        duration: 10,
-        guidance_scale: 1,
-      }
-    );
+    try {
+      const response = await axios.post(
+        "https://srijan12380-ai-music-generator.hf.space/predict",
+        {
+          data: [prompt, 10, 1.0]
+        },
+        {
+          responseType: "blob",
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
 
-    setAudioSrc(response.data); // This is a URL like https://.../file=xyz.wav
-  } catch (error) {
-    console.error("Error generating music:", error);
-    alert("Error generating music. Check console for details.");
-  }
+      const audioBlob = new Blob([response.data], { type: "audio/wav" });
+      const audioUrl = URL.createObjectURL(audioBlob);
+      setAudioSrc(audioUrl);
+    } catch (err) {
+      console.error("Error generating music:", err);
+      alert("Failed to generate music. Check console.");
+    }
 
-  setLoading(false);
-};
-
-
-    const generatedAudioUrl = response.data.data[0];
-    setAudioSrc(generatedAudioUrl);
-  } catch (error) {
-    console.error("Error generating music:", error);
-    alert("Error generating music. Check console for details.");
-  }
-
-  setLoading(false);
-};
-
-
-
+    setLoading(false);
+  };
 
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>
