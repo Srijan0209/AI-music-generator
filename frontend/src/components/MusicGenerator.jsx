@@ -16,13 +16,24 @@ const handleGenerate = async () => {
   setAudioSrc(null);
 
   try {
-    const response = await axios.post("https://srijan12380-ai-music-generator.hf.space/predict", {
-      data: [prompt, 10, 1]
-    }, {
-      headers: {
-        "Content-Type": "application/json"
+    const response = await axios.post(
+      "https://Srijan12380-ai-music-generator.hf.space/predict",
+      {
+        prompt: prompt,
+        duration: 10,
+        guidance_scale: 1,
       }
-    });
+    );
+
+    setAudioSrc(response.data); // This is a URL like https://.../file=xyz.wav
+  } catch (error) {
+    console.error("Error generating music:", error);
+    alert("Error generating music. Check console for details.");
+  }
+
+  setLoading(false);
+};
+
 
     const generatedAudioUrl = response.data.data[0];
     setAudioSrc(generatedAudioUrl);
