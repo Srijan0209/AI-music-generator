@@ -16,7 +16,7 @@ const handleGenerate = async () => {
   setAudioSrc(null);
 
   try {
-    const response = await axios.post("https://srijan12380-ai-music-generator.hf.space/run/predict", {
+    const response = await axios.post("https://srijan12380-ai-music-generator.hf.space/predict", {
       data: [prompt, 10, 1]
     }, {
       headers: {
