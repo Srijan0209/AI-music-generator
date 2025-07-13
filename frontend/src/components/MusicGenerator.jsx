@@ -19,22 +19,26 @@ const MusicGenerator = () => {
       const response = await axios.post(
         "https://srijan12380-ai-music-generator.hf.space/predict",
         {
-          data: [prompt, 10, 1.0]
+          data: [prompt, 10, 1.0], // prompt, duration, guidance_scale
         },
         {
-          responseType: "blob",
           headers: {
-            "Content-Type": "application/json"
-          }
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      const audioBlob = new Blob([response.data], { type: "audio/wav" });
-      const audioUrl = URL.createObjectURL(audioBlob);
+      // Gradio returns "file=/file/abc123.wav"
+      const filePath = response.data.data[0]; // "file=/file/xyz.wav"
+      const audioUrl = filePath.replace(
+        "file=",
+        "https://srijan12380-ai-music-generator.hf.space/file/"
+      );
+
       setAudioSrc(audioUrl);
     } catch (err) {
       console.error("Error generating music:", err);
-      alert("Failed to generate music. Check console.");
+      alert("Failed to generate music. See console for details.");
     }
 
     setLoading(false);
@@ -42,10 +46,10 @@ const MusicGenerator = () => {
 
   return (
     <div style={{ textAlign: "center", padding: "20px" }}>
-      <h2>Music Generator</h2>
+      <h2>🎵 AI Music Generator</h2>
       <input
         type="text"
-        placeholder="Enter music prompt..."
+        placeholder="Enter a music prompt..."
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
         style={{ width: "300px", padding: "10px", marginBottom: "10px" }}
@@ -54,6 +58,7 @@ const MusicGenerator = () => {
       <button onClick={handleGenerate} disabled={loading} style={{ padding: "10px 20px" }}>
         {loading ? "Generating..." : "Generate Music"}
       </button>
+
       {audioSrc && (
         <div style={{ marginTop: "20px" }}>
           <h3>Generated Music:</h3>
