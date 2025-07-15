@@ -1,10 +1,14 @@
 from flask import Flask, request, jsonify, send_file
+from flask_cors import CORS
 from gradio_client import Client
 import requests
 import os
 import tempfile
 
 app = Flask(__name__)
+
+# ✅ Enable CORS (allow from any origin or restrict if needed)
+CORS(app)  # You can also use: CORS(app, origins=["https://ai-music-generator-zszd.vercel.app"])
 
 @app.route("/generate", methods=["POST"])
 def generate_music():
@@ -29,18 +33,16 @@ def generate_music():
         audio_url = f"https://srijan12380-ai-music-generator.hf.space{result_path}"
         audio_response = requests.get(audio_url)
 
-        # Save it to a temp file
+        # Save to temporary file
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
         temp_file.write(audio_response.content)
         temp_file.close()
 
-        # Send file to frontend
         return send_file(temp_file.name, mimetype="audio/wav")
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
-
