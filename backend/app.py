@@ -2,13 +2,15 @@ from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from gradio_client import Client
 import requests
-import os
 import tempfile
+import os
 
 app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
-# ✅ Enable CORS (allow from any origin or restrict if needed)
-CORS(app)  # You can also use: CORS(app, origins=["https://ai-music-generator-zszd.vercel.app"])
+@app.route("/", methods=["GET"])
+def home():
+    return "🎵 Welcome to the AI Music Generator API. Use POST /generate to generate music."
 
 @app.route("/generate", methods=["POST"])
 def generate_music():
@@ -18,10 +20,10 @@ def generate_music():
         duration = data.get("duration", 10)
         guidance_scale = data.get("guidance_scale", 1.0)
 
-        # Connect to your Gradio Space
+        # Connect to Gradio Space
         client = Client("Srijan12380/AI-music-generator")
 
-        # Run prediction on Hugging Face Space
+        # Call /predict endpoint
         result_path = client.predict(
             prompt=prompt,
             duration=duration,
@@ -29,7 +31,7 @@ def generate_music():
             api_name="/predict"
         )
 
-        # Download audio from Hugging Face Space
+        # Download the generated audio
         audio_url = f"https://srijan12380-ai-music-generator.hf.space{result_path}"
         audio_response = requests.get(audio_url)
 
@@ -45,4 +47,4 @@ def generate_music():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port)
