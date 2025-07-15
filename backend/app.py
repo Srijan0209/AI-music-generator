@@ -6,7 +6,7 @@ import os
 import tempfile
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)  # Allow cross-origin requests
 
 @app.route("/generate", methods=["POST"])
 def generate_music():
@@ -16,12 +16,14 @@ def generate_music():
         duration = data.get("duration", 10)
         guidance_scale = data.get("guidance_scale", 1.0)
 
-        print("⏳ Generating music with prompt:", prompt)
+        print("==> Received prompt:", prompt, flush=True)
+        print("==> Duration:", duration, "Guidance scale:", guidance_scale, flush=True)
 
-        # Connect to Gradio space
+        # Create Hugging Face Gradio Client
         client = Client("Srijan12380/AI-music-generator")
+        print("==> Gradio client initialized", flush=True)
 
-        # Call the API
+        # Make prediction
         result_path = client.predict(
             prompt=prompt,
             duration=duration,
@@ -29,29 +31,28 @@ def generate_music():
             api_name="/predict"
         )
 
-        print("✅ Received result path:", result_path)
+        print("==> Received result path:", result_path, flush=True)
 
-        # If result_path is a valid URL or path (e.g. "/file=..."), download the file
-        if result_path.startswith("/file="):
-            file_url = f"https://srijan12380-ai-music-generator.hf.space{result_path}"
-            print("📥 Downloading from:", file_url)
+        # Build audio URL
+        audio_url = f"https://srijan12380-ai-music-generator.hf.space{result_path}"
+        print("==> Fetching from:", audio_url, flush=True)
 
-            audio_response = requests.get(file_url)
-            audio_response.raise_for_status()
+        # Download audio
+        audio_response = requests.get(audio_url)
+        if audio_response.status_code != 200:
+            raise Exception(f"Audio download failed with status code {audio_response.status_code}")
 
-            # Save to temp file
-            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
-            temp_file.write(audio_response.content)
-            temp_file.close()
+        # Save to temp file
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
+        temp_file.write(audio_response.content)
+        temp_file.close()
 
-            print("📤 Sending audio file...")
-            return send_file(temp_file.name, mimetype="audio/wav")
+        print("==> Audio saved successfully", flush=True)
 
-        else:
-            return jsonify({"error": "Invalid audio file path returned"}), 500
+        return send_file(temp_file.name, mimetype="audio/wav")
 
     except Exception as e:
-        print("❌ Error:", str(e))
+        print("==> Error occurred:", e, flush=True)
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
