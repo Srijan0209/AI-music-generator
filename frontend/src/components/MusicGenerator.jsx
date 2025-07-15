@@ -19,7 +19,9 @@ const MusicGenerator = () => {
       const response = await axios.post(
         "https://ai-music-generator-1-j629.onrender.com/generate",
         {
-          data: [prompt, 10, 1.0], // prompt, duration, guidance_scale
+          prompt: prompt,
+          duration: 10,
+          guidance_scale: 1.0,
         },
         {
           headers: {
@@ -28,8 +30,17 @@ const MusicGenerator = () => {
         }
       );
 
-      // Gradio returns "file=/file/abc123.wav"
-      const filePath = response.data.data[0]; // "file=/file/xyz.wav"
+      // Show raw response in console for debugging
+      console.log("API Response:", response.data);
+
+      // Handle the audio path from Flask/Gradio
+      const filePath = response.data.audio_path || response.data.data?.[0]; // flexible handling
+
+      // Ensure filePath starts with "file="
+      if (!filePath || !filePath.startsWith("file=")) {
+        throw new Error("Invalid response format");
+      }
+
       const audioUrl = filePath.replace(
         "file=",
         "https://srijan12380-ai-music-generator.hf.space/file/"
@@ -55,7 +66,11 @@ const MusicGenerator = () => {
         style={{ width: "300px", padding: "10px", marginBottom: "10px" }}
       />
       <br />
-      <button onClick={handleGenerate} disabled={loading} style={{ padding: "10px 20px" }}>
+      <button
+        onClick={handleGenerate}
+        disabled={loading}
+        style={{ padding: "10px 20px" }}
+      >
         {loading ? "Generating..." : "Generate Music"}
       </button>
 
