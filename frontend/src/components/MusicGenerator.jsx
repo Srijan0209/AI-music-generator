@@ -8,7 +8,7 @@ const MusicGenerator = () => {
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
-      alert("Please enter a prompt ");
+      alert("Please enter a prompt");
       return;
     }
 
@@ -27,12 +27,12 @@ const MusicGenerator = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          responseType: "blob", // Important to handle raw audio
+          responseType: "blob", // Because the backend sends audio file
         }
       );
 
-      const blob = new Blob([response.data], { type: "audio/wav" });
-      const audioUrl = URL.createObjectURL(blob);
+      const audioBlob = new Blob([response.data], { type: "audio/wav" });
+      const audioUrl = URL.createObjectURL(audioBlob);
       setAudioSrc(audioUrl);
     } catch (err) {
       console.error("Error generating music:", err);
@@ -53,12 +53,18 @@ const MusicGenerator = () => {
         style={{ width: "300px", padding: "10px", marginBottom: "10px" }}
       />
       <br />
-      <button
-        onClick={handleGenerate}
-        disabled={loading}
-        style={{ padding: "10px 20px" }}
-      >
+      <button onClick={handleGenerate} disabled={loading} style={{ padding: "10px 20px" }}>
         {loading ? "Generating..." : "Generate Music"}
       </button>
 
-      {audioS
+      {audioSrc && (
+        <div style={{ marginTop: "20px" }}>
+          <h3>Generated Music:</h3>
+          <audio controls src={audioSrc}></audio>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default MusicGenerator;
