@@ -17,7 +17,7 @@ const MusicGenerator = () => {
 
     try {
       const response = await axios.post(
-        "https://srijan12380-ai-music-generator.hf.space/predict",
+        "https://ai-music-generator-1-j629.onrender.com/predict",
         {
           data: [prompt, 10, 1.0], // prompt, duration, guidance_scale
         },
