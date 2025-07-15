@@ -8,7 +8,7 @@ const MusicGenerator = () => {
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
-      alert("Please enter a prompt");
+      alert("Please enter a prompt ");
       return;
     }
 
