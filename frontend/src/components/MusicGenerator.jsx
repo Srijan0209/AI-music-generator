@@ -27,25 +27,12 @@ const MusicGenerator = () => {
           headers: {
             "Content-Type": "application/json",
           },
+          responseType: "blob", // Important to handle raw audio
         }
       );
 
-      // Show raw response in console for debugging
-      console.log("API Response:", response.data);
-
-      // Handle the audio path from Flask/Gradio
-      const filePath = response.data.audio_path || response.data.data?.[0]; // flexible handling
-
-      // Ensure filePath starts with "file="
-      if (!filePath || !filePath.startsWith("file=")) {
-        throw new Error("Invalid response format");
-      }
-
-      const audioUrl = filePath.replace(
-        "file=",
-        "https://srijan12380-ai-music-generator.hf.space/file/"
-      );
-
+      const blob = new Blob([response.data], { type: "audio/wav" });
+      const audioUrl = URL.createObjectURL(blob);
       setAudioSrc(audioUrl);
     } catch (err) {
       console.error("Error generating music:", err);
@@ -74,14 +61,4 @@ const MusicGenerator = () => {
         {loading ? "Generating..." : "Generate Music"}
       </button>
 
-      {audioSrc && (
-        <div style={{ marginTop: "20px" }}>
-          <h3>Generated Music:</h3>
-          <audio controls src={audioSrc}></audio>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default MusicGenerator;
+      {audioS
