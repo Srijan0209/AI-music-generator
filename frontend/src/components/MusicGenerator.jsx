@@ -28,7 +28,7 @@ const MusicGenerator = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          responseType: "blob",
+          responseType: "blob", // Ensure audio is returned as a binary blob
         }
       );
 
@@ -37,7 +37,7 @@ const MusicGenerator = () => {
       setAudioSrc(audioUrl);
     } catch (err) {
       console.error("Error generating music:", err);
-      alert("Failed to generate music. See console for details.");
+      alert("Failed to generate music. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -45,32 +45,42 @@ const MusicGenerator = () => {
 
   return (
     <div className="container">
-      <h1>AI Music Generator</h1>
+      <h1>🎵 AI Music Generator</h1>
       <p className="typing-text">Enter a prompt and generate AI-powered music!</p>
 
-      <h2>
-        <FaMusic style={{ marginBottom: "-5px", marginRight: "8px" }} />
-        Music Generator
-      </h2>
+      <div>
+        <input
+          type="text"
+          placeholder="Type your music prompt..."
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          style={{
+            width: "100%",
+            padding: "12px",
+            fontSize: "1rem",
+            borderRadius: "8px",
+            border: "none",
+            marginTop: "15px",
+          }}
+        />
 
-      <input
-        type="text"
-        placeholder="Type your music prompt..."
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        style={{
-          width: "100%",
-          padding: "12px",
-          fontSize: "1rem",
-          borderRadius: "8px",
-          border: "none",
-          marginTop: "15px",
-        }}
-      />
-
-      <button onClick={handleGenerate} disabled={loading}>
-        {loading ? "Generating..." : "Generate Music"}
-      </button>
+        <button
+          onClick={handleGenerate}
+          disabled={loading}
+          style={{
+            marginTop: "20px",
+            padding: "10px 20px",
+            fontSize: "1rem",
+            borderRadius: "8px",
+            cursor: "pointer",
+            background: "linear-gradient(90deg, #8A2BE2, #D946EF)",
+            color: "#fff",
+            border: "none",
+          }}
+        >
+          {loading ? "Generating..." : "Generate Music"}
+        </button>
+      </div>
 
       {audioSrc && (
         <div style={{ marginTop: "30px" }}>
