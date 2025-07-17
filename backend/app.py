@@ -13,46 +13,45 @@ def generate_music():
     try:
         data = request.get_json()
         prompt = data.get("prompt", "")
-        duration = data.get("duration", 10)
-        guidance_scale = data.get("guidance_scale", 1.0)
+        duration = int(data.get("duration", 10))
+        guidance_scale = float(data.get("guidance_scale", 1.0))
 
-        print("==> Received prompt:", prompt, flush=True)
-        print("==> Duration:", duration, "Guidance scale:", guidance_scale, flush=True)
+        print("==> Received prompt:", prompt)
+        print("==> Duration:", duration)
+        print("==> Guidance scale:", guidance_scale)
 
-        # Create Hugging Face Gradio Client
+        # Initialize Hugging Face Gradio Client
         client = Client("Srijan12380/AI-music-generator")
-        print("==> Gradio client initialized", flush=True)
 
-        # Make prediction
+        # Call the Gradio Space
         result_path = client.predict(
-            prompt=prompt,
-            duration=duration,
-            guidance_scale=guidance_scale,
+            prompt,
+            duration,
+            guidance_scale,
             api_name="/predict"
         )
 
-        print("==> Received result path:", result_path, flush=True)
+        print("==> Received result path:", result_path)
 
-        # Build audio URL
+        # Full URL to the audio file hosted by Hugging Face Space
         audio_url = f"https://srijan12380-ai-music-generator.hf.space{result_path}"
-        print("==> Fetching from:", audio_url, flush=True)
+        print("==> Downloading audio from:", audio_url)
 
-        # Download audio
+        # Download the audio file
         audio_response = requests.get(audio_url)
         if audio_response.status_code != 200:
-            raise Exception(f"Audio download failed with status code {audio_response.status_code}")
+            raise Exception(f"Failed to download audio. Status: {audio_response.status_code}")
 
-        # Save to temp file
+        # Save audio to temp file
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
         temp_file.write(audio_response.content)
         temp_file.close()
 
-        print("==> Audio saved successfully", flush=True)
-
+        print("==> Audio saved locally. Sending to frontend.")
         return send_file(temp_file.name, mimetype="audio/wav")
 
     except Exception as e:
-        print("==> Error occurred:", e, flush=True)
+        print("==> Error:", e)
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
