@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 
 const MusicGenerator = () => {
   const [prompt, setPrompt] = useState('');
@@ -6,49 +7,46 @@ const MusicGenerator = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleGenerate = async () => {
-    setIsLoading(true);
-    setAudioUrl(null); // clear previous result
     try {
-      const response = await fetch('https://ai-music-generator-1-j629.onrender.com/generate
-, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt }),
-      });
+      setIsLoading(true);
+      setAudioUrl(null);
 
-      if (!response.ok) throw new Error('Failed to generate audio');
+      const response = await axios.post(
+        'https://ai-music-generator-1-j629.onrender.com/generate', // ✅ your Flask Render URL
+        { prompt },
+        {
+          responseType: 'blob', // ⚠️ Crucial: tells Axios to treat response as binary
+        }
+      );
 
-      const blob = await response.blob();
+      const blob = new Blob([response.data], { type: 'audio/wav' });
       const url = URL.createObjectURL(blob);
       setAudioUrl(url);
-    } catch (error) {
-      console.error(error);
-      alert('Something went wrong while generating audio');
+    } catch (err) {
+      console.error('Error generating music:', err);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>AI Music Generator</h2>
+    <div className="container">
+      <h1>AI Music Generator</h1>
       <input
         type="text"
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
-        placeholder="Enter prompt (e.g. relaxing piano)"
+        placeholder="Enter your prompt..."
       />
       <button onClick={handleGenerate} disabled={isLoading}>
         {isLoading ? 'Generating...' : 'Generate Music'}
       </button>
 
       {audioUrl && (
-        <div>
-          <h4>Output:</h4>
-          <audio controls src={audioUrl} />
-        </div>
+        <audio controls autoPlay>
+          <source src={audioUrl} type="audio/wav" />
+          Your browser does not support the audio element.
+        </audio>
       )}
     </div>
   );
