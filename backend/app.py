@@ -1,59 +1,73 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, Response
+from transformers import MusicgenForConditionalGeneration, AutoProcessor
+import torch
 from flask_cors import CORS
-from gradio_client import Client
-import requests
-import os
-import tempfile
+import wave
+import numpy as np
+from io import BytesIO
 
 app = Flask(__name__)
-CORS(app)  # Allow cross-origin requests
 
-@app.route("/generate", methods=["POST"])
+# Enable CORS for React frontend
+CORS(app, origins=["http://localhost:5173"])
+
+# Load the model and processor with correct configuration
+model_name = "facebook/musicgen-small"
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+model = MusicgenForConditionalGeneration.from_pretrained(
+    model_name, 
+    attn_implementation="eager"  # Fix attention issue
+).to(device)
+
+processor = AutoProcessor.from_pretrained(model_name)
+
+@app.route('/generate', methods=['POST'])
 def generate_music():
     try:
-        data = request.get_json()
-        prompt = data.get("prompt", "")
-        duration = int(data.get("duration", 10))
-        guidance_scale = float(data.get("guidance_scale", 1.0))
+        data = request.json
+        prompt = data.get("prompt", "A soothing piano melody")
+        duration = data.get("duration", 10)
+        guidance_scale = data.get("guidance_scale", 1.0)
 
-        print("==> Received prompt:", prompt)
-        print("==> Duration:", duration)
-        print("==> Guidance scale:", guidance_scale)
+        if not prompt:
+            return jsonify({"error": "Prompt cannot be empty"}), 400
 
-        # Initialize Hugging Face Gradio Client
-        client = Client("Srijan12380/AI-music-generator")
+        # Process the input prompt and convert to model input
+        inputs = processor(text=[prompt], padding=True, return_tensors="pt").to(device)
 
-        # Call the Gradio Space
-        result_path = client.predict(
-            prompt,
-            duration,
-            guidance_scale,
-            api_name="/predict"
-        )
+        # Generate the music output from the model
+        with torch.no_grad():
+            output = model.generate(
+                **inputs,
+                max_new_tokens=int(duration * 50),  # Adjust based on duration
+                guidance_scale=guidance_scale
+            )
 
-        print("==> Received result path:", result_path)
+        # Convert the tensor to a format that can be saved as a WAV file
+        audio_data = output.cpu().numpy().flatten()  # Flatten the tensor to 1D array
+        
+        # Normalize the audio data to be in the range of -1.0 to 1.0
+        audio_data = audio_data / np.max(np.abs(audio_data))  # Normalize to the range -1 to 1
 
-        # Full URL to the audio file hosted by Hugging Face Space
-        audio_url = f"https://srijan12380-ai-music-generator.hf.space{result_path}"
-        print("==> Downloading audio from:", audio_url)
+        # Convert to 16-bit PCM audio
+        audio_data = (audio_data * 32767).astype(np.int16)
 
-        # Download the audio file
-        audio_response = requests.get(audio_url)
-        if audio_response.status_code != 200:
-            raise Exception(f"Failed to download audio. Status: {audio_response.status_code}")
+        # Convert to WAV format using wave module
+        byte_io = BytesIO()
+        with wave.open(byte_io, 'wb') as wave_file:
+            wave_file.setnchannels(1)  # Mono channel
+            wave_file.setsampwidth(2)  # Sample width (16-bit)
+            wave_file.setframerate(44100)  # Sample rate (44.1kHz)
+            wave_file.writeframes(audio_data.tobytes())
+        
+        byte_io.seek(0)
 
-        # Save audio to temp file
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".wav")
-        temp_file.write(audio_response.content)
-        temp_file.close()
-
-        print("==> Audio saved locally. Sending to frontend.")
-        return send_file(temp_file.name, mimetype="audio/wav")
+        # Return the WAV file as binary response
+        return Response(byte_io, mimetype="audio/wav")
 
     except Exception as e:
-        print("==> Error:", e)
         return jsonify({"error": str(e)}), 500
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+if __name__ == '__main__':
+    app.run(debug=True)
